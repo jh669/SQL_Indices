@@ -1,4 +1,4 @@
-DROP VIEW IF exists t_avg CASCADE;
+DROP VIEW IF exists t_avg CASCADE; ---- calculate total average temperature
 CREATE VIEW t_avg AS
 SELECT 
     AVG(value) AS t_avg,
@@ -8,7 +8,7 @@ JOIN metadata m on m.id=d.meta_id WHERE term_id='11'
 GROUP BY meta_id
 ORDER BY meta_id ASC;
 
-DROP VIEW IF exists t_night CASCADE;
+DROP VIEW IF exists t_night CASCADE; ---- calculate average night temperature
 CREATE VIEW t_night AS
 SELECT 
   meta_id,
@@ -19,7 +19,7 @@ WHERE
   OR DATE_PART('hour', tstamp) >= 18
 GROUP BY meta_id;
 
-DROP VIEW IF exists t_day CASCADE;
+DROP VIEW IF exists t_day CASCADE; ---- calculate average day temperature
 CREATE VIEW t_day AS
 SELECT 
   meta_id,
@@ -30,7 +30,7 @@ WHERE
   AND DATE_PART('hour', tstamp) < 18
 GROUP BY meta_id;
 
-DROP VIEW IF EXISTS closestations CASCADE;
+DROP VIEW IF EXISTS closestations CASCADE; ---- calculate closest stations from previous years 2019 and 2020 for each HOBO from 2021
 CREATE VIEW closestations AS
 SELECT 
 	id,
@@ -42,16 +42,15 @@ SELECT
 FROM metadata m
 WHERE term_id='11';
 	
-DROP VIEW IF EXISTS data_norm CASCADE;
+DROP VIEW IF EXISTS data_norm CASCADE; ---- create view with continuous id and comparable value
 CREATE VIEW data_norm AS
 SELECT 
 	count(*) OVER (PARTITION BY meta_id ORDER BY tstamp ASC) as measurement_index,
 	*,
 	value - avg(value) OVER (PARTITION BY meta_id, variable_id) AS norm,
-	avg(value) OVER (PARTITION BY meta_id, variable_id) AS group_avg
 FROM data;	
 
-DROP VIEW IF EXISTS correlation CASCADE;
+DROP VIEW IF EXISTS correlation CASCADE; ---- correlate the values from this term to the 19 and 20 term join them
 CREATE VIEW correlation AS
 SELECT 
 	dn.meta_id,
@@ -68,7 +67,7 @@ GROUP BY dn.meta_id
 ORDER BY dn.meta_id	;
 
 
-DROP TABLE IF exists indices CASCADE;
+DROP TABLE IF exists indices CASCADE; ---- Join all views to one and create a table
 CREATE TABLE indices AS
 SELECT 
 	m.device_id,
